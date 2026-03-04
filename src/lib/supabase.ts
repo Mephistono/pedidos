@@ -35,10 +35,16 @@ export async function testSupabaseConnection(): Promise<string> {
       return "No configurado: define NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY en .env.local.";
     }
     const client = getSupabaseClient();
-    // Consulta mínima para verificar que la URL y la key son válidas (no requiere tablas).
+    // Consulta mínima para verificar que la URL y la key son válidas.
+    // TODO: Cuando tengas una tabla real, cambia "_dummy_" por el nombre de esa tabla.
     const { error } = await client.from("_dummy_").select("*").limit(1).maybeSingle();
-    // PGRST116 = no rows; 42P01 = relation does not exist (proyecto sin tablas aún)
-    if (error && error.code !== "PGRST116" && error.code !== "42P01") {
+    // PGRST116 = no rows; 42P01 / mensajes de tabla inexistente = proyecto sin tablas aún.
+    const isTableMissingError =
+      error?.code === "42P01" ||
+      (typeof error?.message === "string" &&
+        error.message.toLowerCase().includes("could not find the table"));
+
+    if (error && error.code !== "PGRST116" && !isTableMissingError) {
       return `Error de conexión: ${error.message}. Revisa URL y anon key en .env.local.`;
     }
     return "Conexión a Supabase correcta.";
