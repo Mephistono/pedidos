@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      # Montar código fuente para hot reload (los cambios se reflejan sin reconstruir)
+      - .:/app
+      # Mantener node_modules dentro del contenedor (no sobrescribir con el host)
+      - /app/node_modules
+    env_file:
+      - .env.local
+    environment:
+      - WATCHPACK_POLLING=true
+    restart: unless-stopped
